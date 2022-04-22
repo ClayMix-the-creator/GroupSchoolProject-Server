@@ -1,2 +1,0 @@
-There will be some algorithms for server
-Might be, there will be some structures
