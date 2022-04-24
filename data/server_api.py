@@ -1,5 +1,6 @@
 import flask
 from flask import jsonify, request
+from data import db_session
 
 # I'll do some blueprint roots for server api
 
@@ -12,6 +13,8 @@ blueprint = flask.Blueprint(
 
 @blueprint.route('/api/users')
 def get_users():
+    db_sess = db_session.create_session()
+
     return jsonify(
         {
             'error': 'error'
@@ -21,6 +24,8 @@ def get_users():
 
 @blueprint.route('/api/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
+    db_sess = db_session.create_session()
+
     return jsonify(
         {
             'error': 'error'
@@ -30,6 +35,8 @@ def get_user(user_id):
 
 @blueprint.route('/api/users', methods=['POST'])
 def create_user():
+    db_sess = db_session.create_session()
+
     return jsonify(
         {
             'error': 'error'
@@ -39,6 +46,8 @@ def create_user():
 
 @blueprint.route('/api/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
+    db_sess = db_session.create_session()
+
     return jsonify(
         {
             'error': 'error'

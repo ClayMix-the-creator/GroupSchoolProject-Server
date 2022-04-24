@@ -1,2 +1,8 @@
-# There's going to be a user class that will be used for
-# creating and giving information about user
+import datetime
+import sqlalchemy
+from flask_login import UserMixin
+from sqlalchemy import orm
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy_serializer import SerializerMixin
+
+from data.db_session import SqlAlchemyBase
