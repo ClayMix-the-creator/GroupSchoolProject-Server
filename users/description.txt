@@ -1,2 +1,0 @@
-There will be SQL databases of users
-Actually, don't know the db's structure
