@@ -1,18 +1,12 @@
-from flask import Flask, request, render_template
-from flask_restful import abort, Api
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secretkey?'
-api = Api(app)
+from server import app
+from data import db_session, server_api
 
 
-# Lol, I'm doing a server, not a website
-# api.add_resource()
-
-@app.route('/')
-def main_page():
-    return render_template("index.html", title="Главная страница")
+def main():
+    db_session.global_init('db/all_users.sqlite')
+    app.register_blueprint(server_api.blueprint)
+    app.run()
 
 
 if __name__ == '__main__':
-    app.run()
+    main()
