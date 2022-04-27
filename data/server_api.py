@@ -4,7 +4,6 @@ from flask import jsonify, request
 from data import db_session
 from data.users import User
 
-# I'll do some blueprint roots for server api
 
 blueprint = flask.Blueprint(
     'server_api',
@@ -31,6 +30,9 @@ def get_users():
 def get_user(user_id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).get(user_id)
+
+    if not user:
+        return jsonify({'error': 'Not found'})
 
     return jsonify(
         {
