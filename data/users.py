@@ -16,6 +16,8 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     events = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    friends_list = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    friends_requests = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     def __repr__(self):
         return f'<User> {self.id} {self.name} {self.email}'
