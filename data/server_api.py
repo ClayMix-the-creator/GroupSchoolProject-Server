@@ -1,4 +1,5 @@
 import flask
+import sqlalchemy.exc
 from flask import jsonify, request
 
 from data import db_session
@@ -57,8 +58,14 @@ def create_user():
         name=request.json['name']
     )
     user.set_password(request.json['password'])
-    db_sess.add(user)
-    db_sess.commit()
+
+    try:
+        db_sess.add(user)
+        db_sess.commit()
+    except sqlalchemy.exc.IntegrityError as sql_IE:
+        return jsonify({'error': 'Already exists'})
+    except Exception as e:
+        return jsonify({'error': 'Bad request'})
 
     return jsonify({'success': 'OK'})
 
