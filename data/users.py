@@ -20,10 +20,49 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     friends_requests = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     def __repr__(self):
-        return f'<User> {self.id} {self.name} {self.email}'
+        return f'<{self.__class__.__name__}> id={self.id} name={self.name} email={self.email}'
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
+
+    def delete_from_friends_requests(self, friend_name):
+        if self.friends_requests.find(friend_name) == 0:
+            self.friends_requests = list(self.friends_requests)
+
+            for i in range(0, len(friend_name) + 1):
+                self.friends_requests[i] = ''
+
+            self.friends_requests = ''.join(self.friends_requests)
+
+        elif self.friends_requests.find(friend_name) == -1:
+            pass
+
+        else:
+            index = self.friends_requests.find(friend_name)
+            self.friends_requests = list(self.friends_requests)
+
+            for i in range(index - 1, index + len(friend_name)):
+                self.friends_requests[i] = ''
+
+            self.friends_requests = ''.join(self.friends_requests)
+
+    def accept_friend(self, friend_name):
+        self.delete_from_friends_requests(friend_name)
+
+        if self.friends_list:
+            self.friends_list += f';{friend_name}'
+        else:
+            self.friends_list = friend_name
+
+    def deny_friend(self, friend_name):
+        self.delete_from_friends_requests(friend_name)
+
+    def add_friend_request(self, friend_name):
+        if self.friends_requests:
+            if friend_name not in self.friends_requests:
+                self.friends_requests += f';{friend_name}'
+        else:
+            self.friends_requests = f'{friend_name}'
