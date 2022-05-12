@@ -27,38 +27,41 @@ def get_users():
     )
 
 
-@blueprint.route('/api/users/<int:user_id>', methods=['GET'])  # Get user info(email, name, created date, events and friends list)
-def get_user(user_id):
+@blueprint.route('/api/users/<string:user_email>', methods=['GET'])  # Get user info(email, name, created date, events and friends list)
+def get_user(user_email: str):
     db_sess = db_session.create_session()
-    user = db_sess.query(User).get(user_id)
+    users = db_sess.query(User).all()
+    dict_users = {
+        [item.to_dict(only=('id', 'email')) for item in users]
+    }
 
-    if not user:
-        return jsonify({'error': 'Not found'})
+    for cur_user in dict_users:
+        if cur_user['email'] == user_email:
+            user_found = db_sess.query(User).get(int(cur_user['id']))
 
-    return jsonify(
-        {
-            'user': user.to_dict(only=(
-                'email', 'name', 'created_date', 'events', 'friends_list'))
+            return jsonify({
+                    'user': user_found.to_dict(only=(
+                        'email', 'name', 'created_date', 'events', 'friends_list'))
+            })
 
-        }
-    )
-
-
-@blueprint.route('/api/users/<int:friend_id>/<int:self_id>', methods=['POST'])
-def add_to_friends_requests(friend_id, self_id):
-    db_sess = db_session.create_session()
-    friend = db_sess.query(User).get(friend_id)
-    self = db_sess.query(User).get(self_id)
-
-    friend.add_friend_request('Anatoly')
-
-    db_sess.commit()
-
-    return jsonify({'error':'Not available'})
+    return jsonify({'error': 'Not found'})
 
 
-@blueprint.route('/api/users', methods=['POST'])  # Registration
-def create_user():
+# @blueprint.route('/api/users/<int:friend_id>/<int:self_id>', methods=['POST'])
+# def add_to_friends_requests(friend_id, self_id):
+#     db_sess = db_session.create_session()
+#     friend = db_sess.query(User).get(friend_id)
+#     self = db_sess.query(User).get(self_id)
+#
+#     friend.add_friend_request('Anatoly')
+#
+#     db_sess.commit()
+#
+#     return jsonify({'error':'Not available'})
+
+
+@blueprint.route('/api/register', methods=['POST'])  # Registration
+def register():
     if not request.json:
         return jsonify({'error': 'Empty request'})
     elif not all(key in request.json for key in
@@ -83,15 +86,53 @@ def create_user():
     return jsonify({'success': 'OK'})
 
 
-@blueprint.route('/api/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
+@blueprint.route('/api/login', methods=['POST'])
+def login():
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    elif not all(key in request.json for key in
+                 ['email', 'password']):
+        return jsonify({'error': 'Bad request'})
+
+    user = User(email=request.json['email'])
+    user.set_password(request.json['password'])
+
     db_sess = db_session.create_session()
-    user = db_sess.query(User).get(user_id)
+    users = db_sess.query(User).all()
+    dict_users = {
+        [item.to_dict(only=('id', 'email', 'password')) for item in users]
+    }
 
-    if not user:
-        return jsonify({'error': 'Not found'})
+    for cur_user in dict_users:
+        if user.email == cur_user['email'] and user.check_password(cur_user['password']):
+            return jsonify({'success': 'OK'})
 
-    db_sess.delete(user)
-    db_sess.commit()
+    return jsonify({'error': 'Authorisation Error'})
 
-    return jsonify({'success': 'OK'})
+
+@blueprint.route('/api/delete_user', methods=['POST'])
+def delete_user(user_email):
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    elif not all(key in request.json for key in
+                 ['email', 'password']):
+        return jsonify({'error': 'Bad request'})
+
+    db_sess = db_session.create_session()
+    users = db_sess.query(User).all()
+    dict_users = {
+        [item.to_dict(only=('id', 'email')) for item in users]
+    }
+
+    for cur_user in dict_users:
+        if cur_user['email'] == user_email:
+            user_found = db_sess.query(User).get(int(cur_user['id']))
+
+            if user_found.check_password(request.json['password']):
+                db_sess.delete(user_found)
+                db_sess.commit()
+            else:
+                return jsonify({'error': 'Authorisation Error'})
+
+        return jsonify({'success': 'OK'})
+    return jsonify({'error': 'Not found'})
