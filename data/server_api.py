@@ -19,30 +19,25 @@ def get_users():
     users = db_sess.query(User).all()
 
     return jsonify(
-        {
-            'users':
-                [item.to_dict(only=('id', 'email', 'name', 'created_date'))
-                 for item in users]
-        }
+        [
+            item.to_dict(only=('id', 'email', 'name', 'created_date')) for item in users
+        ]
     )
 
 
 @blueprint.route('/api/users/<string:user_email>', methods=['GET'])  # Get user info(email, name, created date, events and friends list)
-def get_user(user_email: str):
+def get_user(user_email):
     db_sess = db_session.create_session()
     users = db_sess.query(User).all()
-    dict_users = {
-        [item.to_dict(only=('id', 'email')) for item in users]
-    }
 
-    for cur_user in dict_users:
-        if cur_user['email'] == user_email:
-            user_found = db_sess.query(User).get(int(cur_user['id']))
+    for user in users:
+        print(user.email == user_email)
+        if user.email == user_email:
+            user_found = db_sess.query(User).get(user.id)
 
-            return jsonify({
-                    'user': user_found.to_dict(only=(
-                        'email', 'name', 'created_date', 'events', 'friends_list'))
-            })
+            return jsonify(
+                user_found.to_dict(only=('email', 'name', 'created_date', 'events', 'friends_list'))
+            )
 
     return jsonify({'error': 'Not found'})
 
@@ -94,17 +89,11 @@ def login():
                  ['email', 'password']):
         return jsonify({'error': 'Bad request'})
 
-    user = User(email=request.json['email'])
-    user.set_password(request.json['password'])
-
     db_sess = db_session.create_session()
     users = db_sess.query(User).all()
-    dict_users = {
-        [item.to_dict(only=('id', 'email', 'password')) for item in users]
-    }
 
-    for cur_user in dict_users:
-        if user.email == cur_user['email'] and user.check_password(cur_user['password']):
+    for user in users:
+        if user.email == request.json['email'] and user.check_password(request.json['password']):
             return jsonify({'success': 'OK'})
 
     return jsonify({'error': 'Authorisation Error'})
@@ -120,19 +109,13 @@ def delete_user(user_email):
 
     db_sess = db_session.create_session()
     users = db_sess.query(User).all()
-    dict_users = {
-        [item.to_dict(only=('id', 'email')) for item in users]
-    }
 
-    for cur_user in dict_users:
-        if cur_user['email'] == user_email:
-            user_found = db_sess.query(User).get(int(cur_user['id']))
-
-            if user_found.check_password(request.json['password']):
-                db_sess.delete(user_found)
+    for user in users:
+        if user.email == request.json['email']:
+            if user.check_password(request.json['password']):
+                db_sess.delete(user)
                 db_sess.commit()
+                return jsonify({'success': 'OK'})
             else:
                 return jsonify({'error': 'Authorisation Error'})
-
-        return jsonify({'success': 'OK'})
     return jsonify({'error': 'Not found'})

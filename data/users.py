@@ -20,7 +20,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     friends_requests = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}> id={self.id} name={self.name} email={self.email}'
+        return f'<{self.__class__.__name__}> id={self.id} name={self.name} email={self.email} password={self.hashed_password}'
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
